@@ -10,18 +10,6 @@
 
 
 
-(defn- infered-attribute [type-def field]
-  (let [type-namespace (or (some-> type-def :fields (get (util/unnamespaced field)) :pathom/namespace name)
-                           (csk/->kebab-case (namespace field)))]
-    (keyword type-namespace
-             (csk/->kebab-case (name field)))))
-
-(defn- attribute [type-def field]
-  (get-in type-def
-          [:fields (util/unnamespaced field) :pathom/attribute]
-          (infered-attribute type-def field)))
-
-
 (defn  remove-nils  [q]
   (->> (if (sequential? q) q [q])
        (mapcat

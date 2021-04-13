@@ -7,7 +7,6 @@
 
 (defn compiled-schema
   [context]
-
   (get context ::constants/schema))
 
 (defn type-def
