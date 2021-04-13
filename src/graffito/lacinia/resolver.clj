@@ -3,7 +3,6 @@
             [graffito.lacinia.schema :as schema]
             [com.wsscode.pathom3.interface.eql :as p.eql]
             [com.walmartlabs.lacinia.executor :as executor]
-            [clojure.set :as set]
             [graffito.util :as util]))
 
 (defn- input-and-params
@@ -11,11 +10,11 @@
   (let [selection-type (-> context executor/selection g.eql/selection-type)
         type-def       (-> context schema/compiled-schema (schema/type-def selection-type))]
     (reduce-kv (fn [m arg value]
-                                      (if-let [attribute (schema/attribute type-def arg)]
-                                        (assoc-in m [:input attribute] value)
-                                        (assoc-in m [:parameters arg] value)))
-                                    {}
-                                    args)))
+                 (if-let [attribute (schema/attribute type-def arg)]
+                   (assoc-in m [:input attribute] value)
+                   (assoc-in m [:parameters arg] value)))
+               {}
+               args)))
 
 (defn execute!
   [{:pathom/keys [index]} input eql]

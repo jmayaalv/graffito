@@ -5,8 +5,7 @@
    [clojure.java.io :as io]
    [com.walmartlabs.lacinia.schema :as schema]
    [com.walmartlabs.lacinia.util :as util]
-   [graffito.lacinia.resolver :as lacinia.resolver]
-))
+   [graffito.lacinia.resolver :as lacinia.resolver]))
 
 
 (defn compile
