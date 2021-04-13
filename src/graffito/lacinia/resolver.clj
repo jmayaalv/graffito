@@ -15,14 +15,9 @@
                    (assoc-in m [:parameters arg] value)))
                {}
                args)))
-
-(defn execute!
-  [{:pathom/keys [index]} input eql]
-  (util/unnamespaced (p.eql/process index input eql)))
-
 (defn pathom [context args value]
   (let [{:keys [input params]} (input-and-params context args)
         fields (->> context
                     executor/selections-tree
                     (g.eql/from-selection-tree context))]
-    (execute! context input fields)))
+    (util/unnamespaced (p.eql/process (:pathom/index context) input fields))))

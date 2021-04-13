@@ -58,15 +58,25 @@
                        :name "Donald X. Vaccarino"}]})
 
 (pco/defresolver game-by-id [{:keys [:board-game/id]}]
-  {::pco/output [:board-game/id :board-game/name :board-game/summary :board-game/min-players :board-game/max-players]}
-  (some #(when (= id (:board-game/id %)) %)
+  {::pco/output [:board-game/id :board-game/name :board-game/summary :board-game/min-players :board-game/max-players {:board-game/designers [:designer/id]}]}
+  (some #(when (= id (:board-game/id %))
+           (update % :board-game/designers (fn [designers]
+                                             (mapv (partial hash-map :designer/id) designers))))
         (get data :games)))
 
 (pco/defresolver game-by-name [input]
   {::pco/input [:board-game/name]
    ::pco/output [:board-game/id :board-game/name :board-game/summary :board-game/min-players :board-game/max-players]}
-  (some #(when (= (:borad-game/name input) (:board-game/name %)) %)
+  (some #(when (= (:board-game/name input) (:board-game/name %)) %)
         (get data :games)))
 
+(pco/defresolver designer-by-id [input]
+  {::pco/input  [:designer/id]
+   ::pco/output [:designer/id :designer/name :designer/url]
+   ::pco/batch? true}
+  (let [ids (set (map :designer/id input))]
+    (filter #(contains? ids (:designer/id %))
+            (get data :designers))))
+
 (defn index []
-  (pci/register [game-by-id game-by-name]))
+  (pci/register [game-by-id game-by-name designer-by-id]))

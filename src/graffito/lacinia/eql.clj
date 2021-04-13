@@ -1,7 +1,6 @@
 (ns graffito.lacinia.eql
   (:require [clojure.walk :as walk]
             [graffito.util :as util]
-            [camel-snake-kebab.core :as csk]
             [com.walmartlabs.lacinia.schema :as lacinia.schema]
             [com.walmartlabs.lacinia :as lacinia]
             [com.walmartlabs.lacinia.constants :as constants]
@@ -10,7 +9,7 @@
 
 
 
-(defn  remove-nils  [q]
+(defn  remove-nils  [q] ;;TODO make this fn cleaner
   (->> (if (sequential? q) q [q])
        (mapcat
         #(reduce-kv
@@ -30,16 +29,16 @@
 
 (defn from-selection-tree
   [context q]
-  (let [field-type (-> context executor/selection selection-type)
-        field-def  (schema/type-def (schema/compiled-schema context) field-type)]
-   (->> q
-        (walk/postwalk
-         (fn [{:keys [selections] :as x}]
-           (cond
-             (qualified-keyword? x)
-             (schema/attribute field-def x)
-             :else
-             (if selections
-               selections
-               x))))
-        remove-nils)))
+  (->> q
+       (walk/postwalk
+        (fn [{:keys [selections] :as x}]
+          (cond
+            (qualified-keyword? x)
+            (let [field-type (keyword (namespace x))
+                  field-def  (schema/type-def (schema/compiled-schema context) field-type)]
+              (schema/attribute field-def x))
+            :else
+            (if selections
+              selections
+              x))))
+       remove-nils))
