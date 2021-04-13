@@ -13,8 +13,8 @@
 (defn  remove-nils  [q]
   (->> (if (sequential? q) q [q])
        (mapcat
-        #(reduce
-          (fn [m [k v]]
+        #(reduce-kv
+          (fn [m k v]
             (if-not (if (sequential? v)
                       (->> v (filter (complement nil?)) seq)
                       v)
