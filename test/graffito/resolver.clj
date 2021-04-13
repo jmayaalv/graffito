@@ -70,5 +70,3 @@
 
 (defn index []
   (pci/register [game-by-id game-by-name]))
-
-(index)

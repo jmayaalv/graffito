@@ -24,20 +24,3 @@
   (-> (io/resource schema)
       slurp
       edn/read-string))
-
-
-
-
-#_(defn q
-  [query-string]
-  (-> (lacinia/execute schema  query-string nil {:pathom/index (indexes)})
-      simplify))
-
-
-
-(comment
-  #_(q "{ game_by_id (id: \"1236\") { id name }}")
-  #_(p.eql/process (indexes) [{[:board-game/id "1236"] [:board-game/id :board-game/name :board-game/summary]}])
-
-
-  ,)
