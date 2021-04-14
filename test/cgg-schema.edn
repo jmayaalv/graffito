@@ -60,6 +60,12 @@
    :args
    {:id {:type (non-null ID)}}}
 
+  :game_by_name
+  {:type        :BoardGame
+   :description "Select a BoardGame by its unique name, if it exists."
+   :args
+   {:name {:type (non-null String)}}}
+
   :member_by_id
   {:type        :Member
    :description "Select a ClojureGameGeek Member by their unique id, if it exists."
