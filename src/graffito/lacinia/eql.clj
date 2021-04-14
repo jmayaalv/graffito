@@ -20,6 +20,8 @@
 (defn selection-fields
   "Tranform a lacinia execution seletion to a vector of selected lacinia fields."
   [selection]
+  (clojure.pprint/pprint selection)
+
   (->> (walk/postwalk (fn [{:keys [selections] :as form}]
                         (cond
                           (qualified-keyword? form) form
@@ -33,16 +35,13 @@
 (defn attribute-to-field
   "Build a equivalence map from pathom atributes to lacinia fields"
   [schema fields-vec]
-  (loop [attribute->field {}
-         fields           fields-vec]
-    (if (seq fields)
-      (let [field    (first fields)
-            join     (map? field)
-            field'   (if join (key (first field)) field)
-            type-def (schema/type-def schema (keyword (namespace field')))]
-        (recur (assoc attribute->field (schema/attribute type-def field') field')
-               (if join (val (first field)) (rest fields))))
-      attribute->field)))
+  (->> fields-vec
+       (tree-seq seqable? seq)
+       (filterv (complement seqable?))
+       (reduce (fn [m field]
+                 (let [type-def (schema/type-def schema (keyword (namespace field)))]
+                   (assoc m (schema/attribute type-def field) field)))
+               {})))
 
 (defn attributes-vec
   "Transform a `fields-vec` with the selection from laciina fields to pathom attributes"

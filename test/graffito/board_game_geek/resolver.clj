@@ -1,7 +1,8 @@
 (ns graffito.board-game-geek.resolver
   (:require [com.wsscode.pathom3.connect.operation :as pco]
             [com.wsscode.pathom3.connect.indexes :as pci]
-            [com.wsscode.misc.coll :as coll]))
+            [com.wsscode.misc.coll :as coll]
+            [com.wsscode.pathom3.interface.eql :as p.eql]))
 
 (def data {:games
            [#:board-game{:id          "1234"
@@ -86,12 +87,32 @@
   {:designer/games (filter #(contains? (:board-game/designers %) id)
                            (get data :games))})
 
+(pco/defresolver game-rating-summary [{:keys [:board-game/id]}]
+  {::pco/input  [:board-game/id]
+   ::pco/output [{:board-game/rating-summary [:game-rating-summary/average :game-rating-summary/count]}]}
+  (let [ratings (->> (get data :ratings)
+                     (filter #(= id (:board-game/id %)))
+                     (map :rating/value))
+        n       (count ratings)]
+    {:board-game/rating-summary {:game-rating-summary/count   n
+                                 :game-rating-summary/average (if (zero? n)
+                                                                0
+                                                                (/ (apply + ratings) n))}}))
 
 (pco/defresolver member-by-id [{:keys [:member/id]}]
-  {::pco/input [:member/id]
+  {::pco/input  [:member/id]
    ::pco/output [:member/id :member/name]}
   (some  #(when (= (:member/id %) id) %)
          (get data :members)))
 
 (defn index []
-  (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id]))
+  (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id game-rating-summary]))
+
+(comment
+  (p.eql/process (index)
+                 {:board-game/id "1237"}
+                 #_[:board-game/id :board-game/name
+                  #:board-game {:rating-summary [:game-rating-summary/count :game-rating-summary/average]}
+                  #:BoardGame {:designers [:Designer/name #:Designer {:games [:board-game/name]}]}]
+                 [:board-game/id :board-game/name {:board-game/rating-summary [:game-rating-summary/count :game-rating-summary/average]}
+                    {:board-game/designers [:designer/name {:designer/games [:board-game/name]}]}]))

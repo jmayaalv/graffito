@@ -3,7 +3,6 @@
             [graffito.lacinia.schema :as schema]
             [com.wsscode.pathom3.interface.eql :as p.eql]
             [com.walmartlabs.lacinia.executor :as executor]
-            [com.walmartlabs.lacinia.resolve :as resolve]
             [graffito.util :as util]))
 
 (defn- input-and-params
@@ -16,6 +15,7 @@
                    (assoc-in m [:parameters arg] value)))
                {}
                args)))
+
 (defn pathom [context args value]
   (let [{:keys [input params]} (input-and-params context args)
         fields                 (->> context executor/selections-tree g.eql/selection-fields)
