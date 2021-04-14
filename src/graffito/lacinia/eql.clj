@@ -4,6 +4,7 @@
             [graffito.lacinia.schema :as schema]))
 
 (defn- selection-vec
+  "Flattens a selection tree to a valid eql vector"
   [tree]
   (reduce-kv (fn [r k v]
                (if (seq (keep identity v))
@@ -16,8 +17,8 @@
   [selection]
   (get-in selection [:field-definition :type :type]))
 
-
 (defn selection-fields
+  "Tranform a lacinia execution seletion to a vector of selected lacinia fields."
   [selection]
   (->> (walk/postwalk (fn [{:keys [selections] :as form}]
                         (cond
@@ -30,6 +31,7 @@
        selection-vec))
 
 (defn attribute-to-field
+  "Build a equivalence map from pathom atributes to lacinia fields"
   [schema fields-vec]
   (loop [attribute->field {}
          fields           fields-vec]
@@ -43,6 +45,7 @@
       attribute->field)))
 
 (defn attributes-vec
+  "Transform a `fields-vec` with the selection from laciina fields to pathom attributes"
   [attribute->field fields-vec]
   (let [field->attribute (reduce-kv (fn [m k v] (assoc m v k)) {} attribute->field)]
   (walk/postwalk (fn [form]
@@ -53,6 +56,7 @@
 
 
 (defn with-lacinia-fields
+  "Transform a result from pathom attributes to lacinia fields as specified on `atribute->field`"
   [attribute->field form]
   (walk/postwalk (fn [x]
                    (if (map? x)
