@@ -20,5 +20,13 @@
                       (-> type-def :type-name name csk/->kebab-case))
         field-def (some-> type-def :fields (get un-field))]
     (when field-def
-      (or (some-> field-def :pathom/namespace name)
+      (or (get  field-def :pathom/attribute)
+          (some-> field-def :pathom/namespace name)
           (keyword type-ns (csk/->kebab-case (name un-field)))))))
+
+(defn attributes
+  "Build a map of lacinia fields to pathom attributes using the compiled schema."
+  [context]
+  (schema/select-type)
+
+  )

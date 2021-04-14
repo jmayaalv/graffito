@@ -1,44 +1,61 @@
 (ns graffito.lacinia.eql
-  (:require [clojure.walk :as walk]
-            [graffito.util :as util]
-            [com.walmartlabs.lacinia.schema :as lacinia.schema]
-            [com.walmartlabs.lacinia :as lacinia]
-            [com.walmartlabs.lacinia.constants :as constants]
-            [graffito.lacinia.schema :as schema]
-            [com.walmartlabs.lacinia.executor :as executor]))
+  (:require [clojure.set :as set]
+            [clojure.walk :as walk]
+            [graffito.lacinia.schema :as schema]))
 
-
-
-(defn  remove-nils  [q] ;;TODO make this fn cleaner
-  (->> (if (sequential? q) q [q])
-       (mapcat
-        #(reduce-kv
-          (fn [m k v]
-            (if-not (if (sequential? v)
-                      (->> v (filter (complement nil?)) seq)
-                      v)
-              (conj m k)
-              (conj m {k (remove-nils v)})))
-          []
-          %))
-       vec))
+(defn- selection-vec
+  [tree]
+  (reduce-kv (fn [r k v]
+               (if (seq (keep identity v))
+                 (conj r {k (selection-vec (first v))})
+                 (conj r k)))
+             []
+             tree))
 
 (defn selection-type
   [selection]
   (get-in selection [:field-definition :type :type]))
 
-(defn from-selection-tree
-  [context q]
-  (->> q
-       (walk/postwalk
-        (fn [{:keys [selections] :as x}]
-          (cond
-            (qualified-keyword? x)
-            (let [field-type (keyword (namespace x))
-                  field-def  (schema/type-def (schema/compiled-schema context) field-type)]
-              (schema/attribute field-def x))
-            :else
-            (if selections
-              selections
-              x))))
-       remove-nils))
+
+(defn selection-fields
+  [selection]
+  (->> (walk/postwalk (fn [{:keys [selections] :as form}]
+                        (cond
+                          (qualified-keyword? form) form
+                          :else
+                          (if (seq selections)
+                            selections
+                            form)))
+                      selection)
+       selection-vec))
+
+(defn attribute-to-field
+  [schema fields-vec]
+  (loop [attribute->field {}
+         fields           fields-vec]
+    (if (seq fields)
+      (let [field    (first fields)
+            join     (map? field)
+            field'   (if join (key (first field)) field)
+            type-def (schema/type-def schema (keyword (namespace field')))]
+        (recur (assoc attribute->field (schema/attribute type-def field') field')
+               (if join (val (first field)) (rest fields))))
+      attribute->field)))
+
+(defn attributes-vec
+  [attribute->field fields-vec]
+  (let [field->attribute (reduce-kv (fn [m k v] (assoc m v k)) {} attribute->field)]
+  (walk/postwalk (fn [form]
+                    (if (keyword? form)
+                      (get field->attribute form form)
+                      form))
+                  fields-vec)))
+
+
+(defn with-lacinia-fields
+  [attribute->field form]
+  (walk/postwalk (fn [x]
+                   (if (map? x)
+                     (set/rename-keys x attribute->field)
+                     x))
+                 form))

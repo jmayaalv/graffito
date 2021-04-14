@@ -31,7 +31,8 @@
    :fields
    {:id          {:type (non-null ID)}
     :member_name {:type        (non-null String)
-                  :description "Unique name of member."}
+                  :description "Unique name of member."
+                  :pathom/attribute :member/name }
     :ratings     {:type        (list :GameRating)
                   :description "List of games and ratings provided by this member."}}}
 

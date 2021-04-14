@@ -23,7 +23,7 @@
   [schema & {:keys [resolvers]}]
   (-> schema
       with-maybe-pathom-resolver
-      (util/attach-resolvers (merge {:pathom/resolver  lacinia.resolver/pathom} resolvers))
+      (util/attach-resolvers (merge {:pathom/resolver lacinia.resolver/pathom} resolvers))
       schema/compile))
 
 (defn load-schema!

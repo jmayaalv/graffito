@@ -82,9 +82,16 @@
 
 (pco/defresolver designer-games [{:keys [designer/id]}]
   {::pco/input [:designer/id]
-   ::pco/output [{:designer/games [:board-game/id :board-game/name :board-game/summary :board-game/min-players :board-game/max-players]}]}
+   ::pco/output [{:designer/games [:board-game/id]}]}
   {:designer/games (filter #(contains? (:board-game/designers %) id)
                            (get data :games))})
 
+
+(pco/defresolver member-by-id [{:keys [:member/id]}]
+  {::pco/input [:member/id]
+   ::pco/output [:member/id :member/name]}
+  (some  #(when (= (:member/id %) id) %)
+         (get data :members)))
+
 (defn index []
-  (pci/register [game-by-id game-by-name designer-by-id designer-games]))
+  (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id]))

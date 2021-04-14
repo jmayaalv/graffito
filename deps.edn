@@ -1,7 +1,7 @@
 {:paths ["src" "resources"]
  :deps  {org.clojure/clojure                 {:mvn/version "1.11.0-alpha1"}
          com.wsscode/pathom3                 {:git/url "https://github.com/wilkerlucio/pathom3"
-                                              :sha     "27934ede903909289b811f973b04bdae76a9cad6"}
+                                              :sha     "81a749a6d3409a6b9e75bf85534b1dda8060de06"}
          camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
          com.walmartlabs/lacinia             {:mvn/version "0.39-alpha-5"}}
  :aliases
