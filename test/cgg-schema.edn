@@ -58,7 +58,8 @@
   {:type        :BoardGame
    :description "Select a BoardGame by its unique id, if it exists."
    :args
-   {:id {:type (non-null ID)}}}
+   {:id {:type (non-null ID)}}
+   :resolve :pathom/resolver}
 
   :game_by_name
   {:type        :BoardGame
