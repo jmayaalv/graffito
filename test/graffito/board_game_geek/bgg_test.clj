@@ -26,8 +26,8 @@
 
   (testing "With joins"
     (is (= {:data {:game_by_id
-                   {:id        "1236"
-                    :name      "Tiny Epic Galaxies"
-                    :designers [{:name "Scott Almes"
-                                 :games [{:name "Tiny Epic Galaxies"}]}]}}}
-         (t.utils/query "{ game_by_id (id: \"1236\") { id name designers { name games { name }}}}")))))
+                   {:id        "1237"
+                    :name      "7 Wonders: Duel"
+                    :designers [{:name "Antoine Bauza" :games [{:name "7 Wonders: Duel"}]}
+                                {:name "Bruno Cathala" :games [{:name "7 Wonders: Duel"}]}]}}}
+         (t.utils/query "{ game_by_id (id: \"1237\") { id name designers { name games { name }}}}")))))
