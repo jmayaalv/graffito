@@ -1,6 +1,7 @@
-(ns graffito.resolver
+(ns graffito.board-game-geek.resolver
   (:require [com.wsscode.pathom3.connect.operation :as pco]
-            [com.wsscode.pathom3.connect.indexes :as pci]))
+            [com.wsscode.pathom3.connect.indexes :as pci]
+            [com.wsscode.misc.coll :as coll]))
 
 (def data {:games
            [#:board-game{:id          "1234"
@@ -75,8 +76,15 @@
    ::pco/output [:designer/id :designer/name :designer/url]
    ::pco/batch? true}
   (let [ids (set (map :designer/id input))]
-    (filter #(contains? ids (:designer/id %))
-            (get data :designers))))
+    (->> (get data :designers)
+         (filter #(contains? ids (:designer/id %)))
+         (coll/restore-order input :designer/id))))
+
+(pco/defresolver designer-games [{:keys [designer/id]}]
+  {::pco/input [:designer/id]
+   ::pco/output [{:designer/games [:board-game/id :board-game/name :board-game/summary :board-game/min-players :board-game/max-players]}]}
+  {:designer/games (filter #(contains? (:board-game/designers %) id)
+                           (get data :games))})
 
 (defn index []
-  (pci/register [game-by-id game-by-name designer-by-id]))
+  (pci/register [game-by-id game-by-name designer-by-id designer-games]))
