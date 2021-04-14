@@ -8,13 +8,22 @@
    [graffito.lacinia.resolver :as lacinia.resolver]))
 
 
+(defn- with-maybe-pathom-resolver
+  "Adds the default pathom resolver to all declared queries if resolver not declareed."
+  [schema]
+  (update schema :queries (partial reduce-kv (fn [m query-id config]
+                                               (assoc m query-id (merge {:resolve :pathom/resolver} config)))
+                                   {})))
+
+
 (defn compile
   "Compile a lacinia schema setting the default pathom resolvers. Return the compiled lacinia schema.
   Options:
    - `resolvers`:  a map lacinia resolvers"
   [schema & {:keys [resolvers]}]
   (-> schema
-      (util/attach-resolvers (merge resolvers {:pathom/resolver  lacinia.resolver/pathom}))
+      with-maybe-pathom-resolver
+      (util/attach-resolvers (merge {:pathom/resolver  lacinia.resolver/pathom} resolvers))
       schema/compile))
 
 (defn load-schema!

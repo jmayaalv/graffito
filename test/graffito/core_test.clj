@@ -10,7 +10,7 @@
                       (graffito/load-schema! "cgg-schema.edn")
                       (test-resolver/index)))
 
-(deftest query
+(deftest querys
   (testing "A simple query"
       (is (= {:data {:game_by_id {:id "1236", :name "Tiny Epic Galaxies"}}}
              (t.utils/query "{ game_by_id (id: \"1236\") { id name }}"))))

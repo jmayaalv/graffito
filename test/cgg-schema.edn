@@ -58,12 +58,10 @@
   {:type        :BoardGame
    :description "Select a BoardGame by its unique id, if it exists."
    :args
-   {:id {:type (non-null ID)}}
-   :resolve     :pathom/resolver}
+   {:id {:type (non-null ID)}}}
 
   :member_by_id
   {:type        :Member
    :description "Select a ClojureGameGeek Member by their unique id, if it exists."
    :args
-   {:id {:type (non-null ID)}}
-   :resolve     :pathom/resolver}}}
+   {:id {:type (non-null ID)}}}}}
