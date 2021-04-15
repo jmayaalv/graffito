@@ -2,7 +2,8 @@
   (:require [clojure.set :as set]
             [clojure.walk :as walk]
             [graffito.lacinia.schema :as schema]
-            [com.wsscode.pathom3.connect.indexes :as pci]))
+            [com.wsscode.pathom3.connect.indexes :as pci]
+            [com.walmartlabs.lacinia.executor :as executor]))
 
 (defn- attribute? [attributes attribute]
   (contains? attributes attribute))
@@ -77,3 +78,32 @@
        (tree-seq seqable? seq)
        (filter keyword?)
        set))
+
+(defn input-and-parameters
+  [context args]
+  (let [selection-type (-> context executor/selection selection-type)
+        type-def       (-> context schema/compiled-schema (schema/type-def selection-type))]
+    (reduce-kv (fn [m arg value]
+                 (if-let [attribute (schema/attribute type-def arg)]
+                   (assoc-in m [:input attribute] value)
+                   (assoc-in m [:parameters arg] value)))
+               {}
+               args)))
+
+(defn with-pathom-attributes
+  "Adds a set with the list of all known pathom attributes if not yet set"
+  [{:keys [pathom/index] :as context}]
+  (if (seq (:pathom/attributes index))
+    context
+    (assoc context :pathom/attributes (attributes index))))
+
+
+(defn eql
+  [context selections-tree args]
+  (let [{:keys [input params]} (input-and-parameters context args)
+        context'               (with-pathom-attributes context)
+        fields                 (selection-fields selections-tree)
+        attribute->field       (attribute-to-field context' fields)]
+    {:input            input
+     :attributes       (attributes-vec attribute->field fields)
+     :attribute->field attribute->field}))

@@ -7,7 +7,8 @@
 
 (use-fixtures :once (t.utils/with-env
                       (graffito/load-schema! "cgg-schema.edn")
-                      (resolver/index)))
+                      (resolver/index)
+                      resolver/data))
 
 (deftest querys
   (testing "A simple query"
@@ -16,13 +17,11 @@
            (t.utils/query "{ game_by_id (id: \"1236\") { id name }}"))))
 
   (testing "with attribute overrides and pathom placeholder"
-    (is (= {:data {:member_by_id
-                   {:id          "1410"
-                    :member_name "bleedingedge"
-                    :ratings
-                    [{:rating 5 :game {:name "Zertz"}}
-                     {:rating 4 :game {:name "Tiny Epic Galaxies"}}
-                     {:rating 4 :game {:name "7 Wonders: Duel"}}]}}}
+    (is (= {:data {:member_by_id {:id          "1410"
+                                  :member_name "bleedingedge"
+                                  :ratings     [{:rating 4 :game {:name "7 Wonders: Duel"}}
+                                                {:rating 4 :game {:name "Tiny Epic Galaxies"}}
+                                                {:rating 5 :game {:name "Zertz"}}]}}}
            (t.utils/query "{ member_by_id(id: \"1410\") { id member_name ratings { rating game { name }}}}"))))
 
   (testing "Multiple queries"
@@ -42,4 +41,9 @@
                       :rating_summary {:count 3 :average 4.333333333333333}
                       :designers      [{:name "Antoine Bauza" :games [{:name "7 Wonders: Duel"}]}
                                        {:name "Bruno Cathala" :games [{:name "7 Wonders: Duel"}]}]}}}
-         (t.utils/query "{ game_by_id (id: \"1237\") { id name rating_summary { count average }  designers { name games { name }}}}")))))
+             (t.utils/query "{ game_by_id (id: \"1237\") { id name rating_summary { count average }  designers { name games { name }}}}")))))
+
+(deftest mutations
+  (testing "single mutation"
+    (is (= {}
+           (t.utils/query "mutation { rate_game(member_id: \"1410\", game_id: \"1235\", rating: 4) { name rating_summary { count average }}}")))))

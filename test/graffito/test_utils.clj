@@ -8,6 +8,8 @@
 
 (def ^:dynamic *pathom*)
 
+(def db+ (atom {}))
+
 
 (defn simplify
   "Converts all ordered maps nested within the map into standard hash maps, and
@@ -27,12 +29,14 @@
     m))
 
 ;;fixtures
-(defn with-env [schema index & options]
+(defn with-env [schema index initial-data & options]
   (fn [f]
     (binding [*schema* (graffito/compile schema options)
               *pathom* index]
-      (f))))
+      (reset! db+ initial-data)
+      (f)
+      (reset! db+ {}))))
 
 (defn query [query-string]
-  (-> (lacinia/execute *schema* query-string nil {:pathom/index  *pathom*})
+  (-> (lacinia/execute *schema* query-string nil {:pathom/index (assoc *pathom* :db db+)})
       simplify))

@@ -5,10 +5,8 @@
    [clojure.java.io :as io]
    [com.walmartlabs.lacinia.schema :as schema]
    [com.walmartlabs.lacinia.util :as util]
-   [graffito.lacinia.resolver :as lacinia.resolver]
-   [com.walmartlabs.lacinia :as lacinia]
-   [com.wsscode.pathom3.connect.indexes :as pci]
-   [graffito.lacinia.eql :as g.eql]))
+   [graffito.lacinia.resolver :as resolver]
+   [graffito.lacinia.mutation :as mutation]))
 
 
 (defn with-maybe-pathom-resolver
@@ -25,7 +23,9 @@
   [schema & {:keys [resolvers]}]
   (-> schema
       with-maybe-pathom-resolver
-      (util/attach-resolvers (merge {:pathom/resolver lacinia.resolver/pathom} resolvers))
+      (util/attach-resolvers (merge {:pathom/resolver resolver/pathom
+                                     :pathom/mutation mutation/pathom}
+                                    resolvers))
       schema/compile))
 
 (defn load-schema!

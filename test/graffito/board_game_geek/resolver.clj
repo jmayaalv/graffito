@@ -2,7 +2,8 @@
   (:require [com.wsscode.pathom3.connect.operation :as pco]
             [com.wsscode.pathom3.connect.indexes :as pci]
             [com.wsscode.misc.coll :as coll]
-            [com.wsscode.pathom3.interface.eql :as p.eql]))
+            [com.wsscode.pathom3.interface.eql :as p.eql]
+            [com.wsscode.pathom3.connect.planner :as pcp]))
 
 (def data {:games
            [#:board-game{:id          "1234"
@@ -37,12 +38,12 @@
                      :name "missyo"}]
 
            :ratings
-           [{:member/id "37" :board-game/id "1234" :rating/value 3}
-            {:member/id "1410" :board-game/id "1234" :rating/value 5}
-            {:member/id "1410" :board-game/id "1236" :rating/value 4}
-            {:member/id "1410" :board-game/id "1237" :rating/value 4}
-            {:member/id "2812" :board-game/id "1237" :rating/value 4}
-            {:member/id "37" :board-game/id "1237" :rating/value 5}]
+           #{{:member/id "37" :board-game/id "1234" :rating/value 3}
+             {:member/id "1410" :board-game/id "1234" :rating/value 5}
+             {:member/id "1410" :board-game/id "1236" :rating/value 4}
+             {:member/id "1410" :board-game/id "1237" :rating/value 4}
+             {:member/id "2812" :board-game/id "1237" :rating/value 4}
+             {:member/id "37" :board-game/id "1237" :rating/value 5}}
 
            :designers
            [#:designer{:id   "200"
@@ -59,38 +60,39 @@
             #:designer{:id   "204"
                        :name "Donald X. Vaccarino"}]})
 
-(pco/defresolver game-by-id [{:keys [:board-game/id]}]
-  {::pco/output [:board-game/id :board-game/name :board-game/summary :board-game/min-players :board-game/max-players {:board-game/designers [:designer/id]}]}
+(pco/defresolver game-by-id [{:keys [db]} {:keys [:board-game/id]}]
+  {::pco/input [:board-game/id]
+   ::pco/output [:board-game/name :board-game/summary :board-game/min-players :board-game/max-players {:board-game/designers [:designer/id]}]}
   (some #(when (= id (:board-game/id %))
            (update % :board-game/designers (fn [designers]
                                              (mapv (partial hash-map :designer/id) designers))))
-        (get data :games)))
+        (get @db :games)))
 
-(pco/defresolver game-by-name [input]
+(pco/defresolver game-by-name [{:keys [db]} input]
   {::pco/input [:board-game/name]
    ::pco/output [:board-game/id :board-game/name :board-game/summary :board-game/min-players :board-game/max-players]}
   (some #(when (= (:board-game/name input) (:board-game/name %)) %)
-        (get data :games)))
+        (get @db :games)))
 
-(pco/defresolver designer-by-id [input]
+(pco/defresolver designer-by-id [{:keys [db]} input]
   {::pco/input  [:designer/id]
    ::pco/output [:designer/id :designer/name :designer/url]
    ::pco/batch? true}
   (let [ids (set (map :designer/id input))]
-    (->> (get data :designers)
+    (->> (get @db :designers)
          (filter #(contains? ids (:designer/id %)))
          (coll/restore-order input :designer/id))))
 
-(pco/defresolver designer-games [{:keys [designer/id]}]
+(pco/defresolver designer-games [{:keys [db]} {:keys [designer/id]}]
   {::pco/input [:designer/id]
    ::pco/output [{:designer/games [:board-game/id]}]}
   {:designer/games (filter #(contains? (:board-game/designers %) id)
-                           (get data :games))})
+                           (get @db :games))})
 
-(pco/defresolver game-rating-summary [{:keys [:board-game/id]}]
+(pco/defresolver game-rating-summary [{:keys [db]} {:keys [:board-game/id]}]
   {::pco/input  [:board-game/id]
    ::pco/output [{:board-game/rating-summary [:game-rating-summary/average :game-rating-summary/count]}]}
-  (let [ratings (->> (get data :ratings)
+  (let [ratings (->> (get @db :ratings)
                      (filter #(= id (:board-game/id %)))
                      (map :rating/value))
         n       (count ratings)]
@@ -99,20 +101,27 @@
                                                                 0
                                                                 (/ (apply + ratings) n))}}))
 
-(pco/defresolver member-by-id [{:keys [:member/id]}]
+(pco/defresolver member-by-id [{:keys [db]} {:keys [:member/id]}]
   {::pco/input  [:member/id]
    ::pco/output [:member/id :member/name]}
   (some  #(when (= (:member/id %) id) %)
-         (get data :members)))
+         (get @db :members)))
 
-(pco/defresolver member-ratings [{:keys [:member/id]}]
+(pco/defresolver member-ratings [{:keys [db]} {:keys [:member/id]}]
   {::pco/input [:member/id]
    ::pco/output [{:member/ratings [:board-game/id :rating/value]}]}
   {:member/ratings (filter #(= id (:member/id %))
-                              (get data :ratings))})
+                           (get @db :ratings))})
+
+
+(defn- upsert-game-rating! [db game-rate]
+  #p (swap! db update :ratings conj game-rate))
+
+(pco/defmutation rate! [{:keys [db]} { gameid :board-game/id memberid :member/id value :rating}]
+  (upsert-game-rating! db {:member/id memberid :board-game/id gameid :rating/value value}))
 
 (defn index []
-  (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id game-rating-summary member-ratings]))
+  (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id game-rating-summary member-ratings rate!]))
 
 (comment
   (tap> (index))

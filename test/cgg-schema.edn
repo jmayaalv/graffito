@@ -4,7 +4,7 @@
    :fields
    {:id             {:type (non-null ID)}
     :name           {:type (non-null String)}
-    :rating_summary {:type    (non-null :GameRatingSummary)}
+    :rating_summary {:type (non-null :GameRatingSummary)}
     :summary        {:type        String
                      :description "A one-line summary of the game."}
     :description    {:type        String
@@ -30,8 +30,8 @@
   {:description "A member of Clojure Game Geek.  Members can rate games."
    :fields
    {:id          {:type (non-null ID)}
-    :member_name {:type        (non-null String)
-                  :description "Unique name of member."
+    :member_name {:type             (non-null String)
+                  :description      "Unique name of member."
                   :pathom/attribute :member/name }
     :ratings     {:type        (list :GameRating)
                   :description "List of games and ratings provided by this member."}}}
@@ -41,8 +41,8 @@
    :fields
    {:game   {:type        (non-null :BoardGame)
              :description "The Game rated by the member."}
-    :rating {:type        (non-null Int)
-             :description "The rating as 1 to 5 stars."
+    :rating {:type             (non-null Int)
+             :description      "The rating as 1 to 5 stars."
              :pathom/attribute :rating/value}}}
 
   :Designer
@@ -61,7 +61,7 @@
    :description "Select a BoardGame by its unique id, if it exists."
    :args
    {:id {:type (non-null ID)}}
-   :resolve :pathom/resolver}
+   :resolve     :pathom/resolver}
 
   :game_by_name
   {:type        :BoardGame
@@ -73,4 +73,19 @@
   {:type        :Member
    :description "Select a ClojureGameGeek Member by their unique id, if it exists."
    :args
-   {:id {:type (non-null ID)}}}}}
+   {:id {:type (non-null ID)}}}}
+
+ :mutations
+ {:rate_game
+  {:type        :BoardGame
+   :description "Establishes a rating of a board game, by a Member.
+   On success (the game and member both exist), selects the BoardGame.
+   Otherwise, selects nil and an error."
+   :args
+   {:game_id   {:type             (non-null ID)
+                :pathom/attribute :board-game/id}
+    :member_id {:type             (non-null ID)
+                :pathom/attribute :member/id}
+    :rating    {:type        (non-null Int)
+                :description "Game rating as a number between 1 and 5."}}
+   :resolve     [:pathom/mutation graffito.board-game-geek.resolver/rate!]}}}

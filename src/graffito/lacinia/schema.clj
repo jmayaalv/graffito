@@ -14,6 +14,10 @@
   [schema type]
   (schema/select-type schema type))
 
+(defn argument-def
+  [field-def arg]
+  (get-in field-def [:field-definition :args arg]))
+
 (defn attribute
   "Return the correspondent pathom attribute for a `field` defined on a `type-def`."
   [type-def field]
@@ -25,6 +29,13 @@
       (or (get  field-def :pathom/attribute)
           (some-> field-def :pathom/namespace name)
           (keyword type-ns (csk/->kebab-case (name un-field)))))))
+
+(defn argument
+  "Return the correspondent pathom attribute defined on a `argument-def`."
+  [argument-def]
+  (when-let [arg  (get argument-def :arg-name)]
+    (get  argument-def :pathom/attribute
+          (keyword (csk/->kebab-case (name arg))))))
 
 (defn attributes
   "Build a map of lacinia fields to pathom attributes using the compiled schema."
