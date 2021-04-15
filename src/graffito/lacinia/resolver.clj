@@ -5,6 +5,13 @@
             [com.walmartlabs.lacinia.executor :as executor]
             [graffito.util :as util]))
 
+(defn- with-pathom-attributes
+  "Adds a set with the list of all known pathom attributes if not yet set"
+  [{:keys [pathom/index] :as context}]
+  (if (seq (:pathom/attributes index))
+    context
+    (assoc context :pathom/attributes (g.eql/pathom-attributes index))))
+
 (defn- input-and-params
   [context args]
   (let [selection-type (-> context executor/selection g.eql/selection-type)
@@ -18,10 +25,9 @@
 
 (defn pathom [context args value]
   (let [{:keys [input params]} (input-and-params context args)
-        available-data         (reduce-kv (fn [m k _](assoc m k {})) {} input)
-        context'               (assoc context :pathom/available-data available-data)
+        context'               (with-pathom-attributes context)
         fields                 (->> context' executor/selections-tree g.eql/selection-fields)
         attribute->field       (g.eql/attribute-to-field context' fields)]
-    (->> (p.eql/process (:pathom/index context') input (g.eql/attributes-vec attribute->field fields))
+    (->> (p.eql/process (:pathom/index context) input (g.eql/attributes-vec attribute->field fields))
          (g.eql/with-lacinia-fields attribute->field)
          util/unnamespaced)))

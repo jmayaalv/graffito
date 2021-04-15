@@ -4,18 +4,8 @@
             [graffito.lacinia.schema :as schema]
             [com.wsscode.pathom3.connect.indexes :as pci]))
 
-(defn- attribute? [index reachable-attributes attribute]
-  (or (pci/attribute-available? index attribute)
-      (contains? reachable-attributes attribute)))
-
-(defn- reachable-attributes
-  [index available-data]
-  (when (seq available-data)
-    (->> (pci/reachable-paths index available-data)
-               (tree-seq seqable? seq)
-               (filter keyword?)
-               set)))
-
+(defn- attribute? [attributes attribute]
+  (contains? attributes attribute))
 
 (defn- selection-vec
   "Flattens a selection tree to a valid eql vector"
@@ -46,17 +36,16 @@
 
 (defn attribute-to-field
   "Build a equivalence map from pathom atributes to lacinia fields.
-  Use the `:pathom/available-data` to determine which attributes are accesible by pathom."
-  [{:pathom/keys [index available-data] :as context} fields-vec]
-  (let [schema          (schema/compiled-schema context)
-        reachable-attrs (reachable-attributes index available-data)]
+  Use the `:pathom/attributes' to determine which attributes are available"
+  [{:pathom/keys [attributes] :as context} fields-vec]
+  (let [schema          (schema/compiled-schema context)]
    (->> fields-vec
         (tree-seq seqable? seq)
         (filterv (complement seqable?))
         (reduce (fn [m field]
                   (let [type-def  (schema/type-def schema (keyword (namespace field)))
                         attribute (schema/attribute type-def field)]
-                    (if (attribute? index reachable-attrs attribute)
+                    (if (attribute?  attributes attribute)
                       (assoc m attribute field)
                       m)))
                 {}))))
@@ -80,3 +69,11 @@
                      (set/rename-keys x attribute->field)
                      x))
                  form))
+
+(defn attributes
+  [index]
+  (->> index
+       ::pci/index-io
+       (tree-seq seqable? seq)
+       (filter keyword?)
+       set))

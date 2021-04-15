@@ -3,11 +3,7 @@
             [graffito.lacinia.eql :as g.eql]
             [graffito.core :as graffito]
             [com.walmartlabs.lacinia.constants :as constants]
-            [graffito.board-game-geek.resolver :as resolver]
-            [graffito.lacinia.schema :as schema]
-            [com.walmartlabs.lacinia :as lacinia]
-            [com.walmartlabs.lacinia.schema :as lacinia.schema]
-            [com.wsscode.pathom3.connect.indexes :as pci]))
+            [graffito.board-game-geek.resolver :as resolver]))
 
 (deftest selection-fields
   (testing "joined selection"
@@ -34,32 +30,31 @@
 
 
 (deftest attribute-to-fields
-  (testing "joined selection"
-      (is (= {:board-game/id               :BoardGame/id
-              :board-game/name             :BoardGame/name
-              :board-game/rating-summary   :BoardGame/rating_summary
-              :board-game/designers        :BoardGame/designers
-              :game-rating-summary/count   :GameRatingSummary/count
-              :game-rating-summary/average :GameRatingSummary/average
-              :designer/name               :Designer/name
-              :designer/games              :Designer/games}
-             (g.eql/attribute-to-field  {::constants/schema     (graffito/compile (graffito/load-schema! "cgg-schema.edn"))
-                                         :pathom/index          (resolver/index)
-                                         :pathom/available-data {:board-game/id {}}}
-                                      [:BoardGame/id :BoardGame/name
-                                       {:BoardGame/rating_summary [:GameRatingSummary/count :GameRatingSummary/average]}
-                                       {:BoardGame/designers [:Designer/name {:Designer/games [:BoardGame/name]}]}]))))
- (testing "placeholder"
-   (is (= {:member/id       :Member/id
-           :member/name     :Member/member_name
-           :member/ratings  :Member/ratings
-           :rating/value    :GameRating/rating
-           :board-game/name :BoardGame/name}
-          (g.eql/attribute-to-field {::constants/schema     (graffito/compile (graffito/load-schema! "cgg-schema.edn"))
-                                     :pathom/index          (resolver/index)
-                                     :pathom/available-data {:member/id {}}}
-                                    [:Member/id :Member/member_name #:Member{:ratings [:GameRating/rating #:GameRating{:game [:BoardGame/name]}]}])))))
-
+  (let [index   (resolver/index)
+        context {::constants/schema (graffito/compile (graffito/load-schema! "cgg-schema.edn"))
+                 :pathom/index      index
+                 :pathom/attributes (g.eql/attributes index)}]
+   (testing "joined selection"
+     (is (= {:board-game/id               :BoardGame/id
+             :board-game/name             :BoardGame/name
+             :board-game/rating-summary   :BoardGame/rating_summary
+             :board-game/designers        :BoardGame/designers
+             :game-rating-summary/count   :GameRatingSummary/count
+             :game-rating-summary/average :GameRatingSummary/average
+             :designer/name               :Designer/name
+             :designer/games              :Designer/games}
+            (g.eql/attribute-to-field  context
+                                       [:BoardGame/id :BoardGame/name
+                                        {:BoardGame/rating_summary [:GameRatingSummary/count :GameRatingSummary/average]}
+                                        {:BoardGame/designers [:Designer/name {:Designer/games [:BoardGame/name]}]}]))))
+   (testing "placeholder"
+     (is (= {:member/id       :Member/id
+             :member/name     :Member/member_name
+             :member/ratings  :Member/ratings
+             :rating/value    :GameRating/rating
+             :board-game/name :BoardGame/name}
+            (g.eql/attribute-to-field context
+                                      [:Member/id :Member/member_name #:Member{:ratings [:GameRating/rating #:GameRating{:game [:BoardGame/name]}]}]))))))
 
 
 (deftest attributes-vec
