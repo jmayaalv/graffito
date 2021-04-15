@@ -2,7 +2,8 @@
   (:require [com.walmartlabs.lacinia.schema :as schema]
             [graffito.util :as util]
             [camel-snake-kebab.core :as csk]
-            [com.walmartlabs.lacinia.constants :as constants]))
+            [com.walmartlabs.lacinia.constants :as constants]
+            [com.wsscode.pathom3.connect.indexes :as pci]))
 
 
 (defn compiled-schema
@@ -14,6 +15,7 @@
   (schema/select-type schema type))
 
 (defn attribute
+  "Return the correspondent pathom attribute for a `field` defined on a `type-def`."
   [type-def field]
   (let [un-field  (util/unnamespaced field)
         type-ns   (or (some-> type-def :pathom/namespace name)

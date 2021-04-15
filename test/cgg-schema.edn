@@ -42,7 +42,8 @@
    {:game   {:type        (non-null :BoardGame)
              :description "The Game rated by the member."}
     :rating {:type        (non-null Int)
-             :description "The rating as 1 to 5 stars."}}}
+             :description "The rating as 1 to 5 stars."
+             :pathom/attribute :rating/value}}}
 
   :Designer
   {:description "A person who may have contributed to a board game design."

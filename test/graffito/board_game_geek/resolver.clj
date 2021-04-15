@@ -105,14 +105,20 @@
   (some  #(when (= (:member/id %) id) %)
          (get data :members)))
 
+(pco/defresolver member-ratings [{:keys [:member/id]}]
+  {::pco/input [:member/id]
+   ::pco/output [{:member/ratings [:board-game/id :rating/value]}]}
+  {:member/ratings (filter #(= id (:member/id %))
+                              (get data :ratings))})
+
 (defn index []
-  (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id game-rating-summary]))
+  (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id game-rating-summary member-ratings]))
 
 (comment
+  (tap> (index))
   (p.eql/process (index)
-                 {:board-game/id "1237"}
-                 #_[:board-game/id :board-game/name
-                  #:board-game {:rating-summary [:game-rating-summary/count :game-rating-summary/average]}
-                  #:BoardGame {:designers [:Designer/name #:Designer {:games [:board-game/name]}]}]
-                 [:board-game/id :board-game/name {:board-game/rating-summary [:game-rating-summary/count :game-rating-summary/average]}
-                    {:board-game/designers [:designer/name {:designer/games [:board-game/name]}]}]))
+                 {:member/id "1410"}
+                 [:member/id :member/name {:member/ratings [:rating/value {:>/game [:board-game/name]}]}])
+
+
+)

@@ -18,8 +18,10 @@
 
 (defn pathom [context args value]
   (let [{:keys [input params]} (input-and-params context args)
-        fields                 (->> context executor/selections-tree g.eql/selection-fields)
-        attribute->field       (g.eql/attribute-to-field (schema/compiled-schema context) fields)]
-    (->> (p.eql/process (:pathom/index context) input (g.eql/attributes-vec attribute->field fields))
+        available-data         (reduce-kv (fn [m k _](assoc m k {})) {} input)
+        context'               (assoc context :pathom/available-data available-data)
+        fields                 (->> context' executor/selections-tree g.eql/selection-fields)
+        attribute->field       (g.eql/attribute-to-field context' fields)]
+    (->> (p.eql/process (:pathom/index context') input (g.eql/attributes-vec attribute->field fields))
          (g.eql/with-lacinia-fields attribute->field)
          util/unnamespaced)))
