@@ -90,13 +90,13 @@
 
 (pco/defresolver game-rating-summary [{:keys [db]} {:keys [:board-game/id]}]
   {::pco/input  [:board-game/id]
-   ::pco/output [:game/rate-average :game/rate-count]}
+   ::pco/output [:board-game/rate-average :board-game/rate-count]}
   (let [ratings (->> (get @db :ratings)
                      (filter #(= id (:board-game/id %)))
                      (map :rating/value))
         n       (count ratings)]
-    {:game/rate-count   n
-     :game/rate-average (if (zero? n)
+    {:board-game/rate-count   n
+     :board-game/rate-average (if (zero? n)
                                     0
                                     (/ (apply + ratings) n))}))
 
@@ -118,7 +118,7 @@
 
 (pco/defmutation rate! [{:keys [db]} { gameid :board-game/id memberid :member/id value :rating}]
   (upsert-game-rating! db {:member/id memberid :board-game/id gameid :rating/value value})
-  )
+  {:board-game/id gameid})
 
 (defn index []
   (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id game-rating-summary member-ratings rate!]))

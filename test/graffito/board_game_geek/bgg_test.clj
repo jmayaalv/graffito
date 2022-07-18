@@ -5,18 +5,18 @@
    [graffito.core :as graffito]
    [graffito.test-utils :as t.utils]))
 
-(use-fixtures :once (t.utils/with-env
+(use-fixtures :each (t.utils/with-env
                       (graffito/load-schema! "cgg-schema.edn")
                       (resolver/index)
                       resolver/data))
 
 (deftest querys
-  #_(testing "A simple query"
+  (testing "A simple query"
       (is (= {:data {:game_by_id {:id   "1236"
                                   :name "Tiny Epic Galaxies"}}}
            (t.utils/query "{ game_by_id (id: \"1236\") { id name }}"))))
 
-  #_(testing "with attribute overrides and pathom placeholder"
+  (testing "with attribute overrides and pathom placeholder"
     (is (= {:data {:member_by_id {:id          "1410"
                                   :member_name "bleedingedge"
                                   :ratings     [{:rating 4 :game {:name "7 Wonders: Duel"}}
@@ -24,7 +24,7 @@
                                                 {:rating 5 :game {:name "Zertz"}}]}}}
            (t.utils/query "{ member_by_id(id: \"1410\") { id member_name ratings { rating game { name }}}}"))))
 
-  #_(testing "Multiple queries"
+  (testing "Multiple queries"
       (is (= {:data {:game_by_id   {:id   "1236"
                                     :name "Tiny Epic Galaxies"}
                      :game_by_name {:id   "1234"
@@ -45,5 +45,7 @@
 
 (deftest mutations
   (testing "single mutation"
-    (is (= {}
+    (is (= {:data
+            {:rate_game
+             {:name "Dominion", :rating_summary {:count 1, :average 4.0}}}}
            (t.utils/query "mutation { rate_game(member_id: \"1410\", game_id: \"1235\", rating: 4) { name rating_summary { count average }}}")))))
