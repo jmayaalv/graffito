@@ -17,10 +17,6 @@
   "Resolver factory for pathom mutations"
   [mutation]
   (fn [context args value]
-    (let [parameters                                 (parameters context args)
-          op                                         (seq [mutation parameters]) ]
+    (let [parameters (parameters context args)
+          op         (seq [mutation parameters]) ]
       (p.eql/process (:pathom/index context) [op]))))
-
-(comment
-
-  )

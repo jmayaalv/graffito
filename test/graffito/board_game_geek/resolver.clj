@@ -1,9 +1,8 @@
 (ns graffito.board-game-geek.resolver
-  (:require [com.wsscode.pathom3.connect.operation :as pco]
-            [com.wsscode.pathom3.connect.indexes :as pci]
-            [com.wsscode.misc.coll :as coll]
-            [com.wsscode.pathom3.interface.eql :as p.eql]
-            [com.wsscode.pathom3.connect.planner :as pcp]))
+  (:require
+   [com.wsscode.misc.coll :as coll]
+   [com.wsscode.pathom3.connect.indexes :as pci]
+   [com.wsscode.pathom3.connect.operation :as pco]))
 
 (def data {:games
            [#:board-game{:id          "1234"
@@ -91,15 +90,15 @@
 
 (pco/defresolver game-rating-summary [{:keys [db]} {:keys [:board-game/id]}]
   {::pco/input  [:board-game/id]
-   ::pco/output [{:board-game/rating-summary [:game-rating-summary/average :game-rating-summary/count]}]}
+   ::pco/output [:game/rate-average :game/rate-count]}
   (let [ratings (->> (get @db :ratings)
                      (filter #(= id (:board-game/id %)))
                      (map :rating/value))
         n       (count ratings)]
-    {:board-game/rating-summary {:game-rating-summary/count   n
-                                 :game-rating-summary/average (if (zero? n)
-                                                                0
-                                                                (/ (apply + ratings) n))}}))
+    {:game/rate-count   n
+     :game/rate-average (if (zero? n)
+                                    0
+                                    (/ (apply + ratings) n))}))
 
 (pco/defresolver member-by-id [{:keys [db]} {:keys [:member/id]}]
   {::pco/input  [:member/id]
@@ -115,19 +114,11 @@
 
 
 (defn- upsert-game-rating! [db game-rate]
-  #p (swap! db update :ratings conj game-rate))
+  (swap! db update :ratings conj game-rate))
 
 (pco/defmutation rate! [{:keys [db]} { gameid :board-game/id memberid :member/id value :rating}]
-  (upsert-game-rating! db {:member/id memberid :board-game/id gameid :rating/value value}))
+  (upsert-game-rating! db {:member/id memberid :board-game/id gameid :rating/value value})
+  )
 
 (defn index []
   (pci/register [game-by-id game-by-name designer-by-id designer-games member-by-id game-rating-summary member-ratings rate!]))
-
-(comment
-  (tap> (index))
-  (p.eql/process (index)
-                 {:member/id "1410"}
-                 [:member/id :member/name {:member/ratings [:rating/value {:>/game [:board-game/name]}]}])
-
-
-)

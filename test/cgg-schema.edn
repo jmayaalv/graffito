@@ -19,12 +19,15 @@
                      :description "Play time, in minutes, for a typical game."}}}
 
   :GameRatingSummary
-  {:description "Summary of ratings for a single game."
+  {:description      "Summary of ratings for a single game."
+   :pathom/attribute :>/rating-summary
    :fields
-   {:count   {:type        (non-null Int)
-              :description "Number of ratings provided for the game.  Ratings are 1 to 5 stars."}
-    :average {:type        (non-null Float)
-              :description "The average value of all ratings, or 0 if never rated."}}}
+   {:count   {:type             (non-null Int)
+              :description      "Number of ratings provided for the game.  Ratings are 1 to 5 stars."
+              :pathom/attribute :game/rate-count}
+    :average {:type             (non-null Float)
+              :description      "The average value of all ratings, or 0 if never rated."
+              :pathom/attribute :game/rate-average}}}
 
   :Member
   {:description "A member of Clojure Game Geek.  Members can rate games."
