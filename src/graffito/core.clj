@@ -5,11 +5,11 @@
    [clojure.java.io :as io]
    [com.walmartlabs.lacinia.schema :as schema]
    [com.walmartlabs.lacinia.util :as util]
-   [graffito.lacinia.resolver :as resolver]
-   [graffito.lacinia.mutation :as mutation]))
+   [graffito.lacinia.mutation :as mutation]
+   [graffito.lacinia.resolver :as resolver]))
 
 
-(defn with-maybe-pathom-resolver
+(defn- with-maybe-pathom-resolver
   "Adds the default pathom resolver to all declared queries if resolver not declareed."
   [schema]
   (update schema :queries (partial reduce-kv (fn [m query-id config]

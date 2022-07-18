@@ -1,9 +1,10 @@
 (ns graffito.lacinia.eql
-  (:require [clojure.set :as set]
-            [clojure.walk :as walk]
-            [graffito.lacinia.schema :as schema]
-            [com.wsscode.pathom3.connect.indexes :as pci]
-            [com.walmartlabs.lacinia.executor :as executor]))
+  (:require
+   [clojure.set :as set]
+   [clojure.walk :as walk]
+   [com.walmartlabs.lacinia.executor :as executor]
+   [com.wsscode.pathom3.connect.indexes :as pci]
+   [graffito.lacinia.schema :as schema]))
 
 (defn- attribute? [attributes attribute]
   (contains? attributes attribute))

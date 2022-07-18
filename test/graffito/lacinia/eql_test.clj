@@ -1,9 +1,10 @@
 (ns graffito.lacinia.eql-test
-  (:require [clojure.test :refer [deftest testing is]]
-            [graffito.lacinia.eql :as g.eql]
-            [graffito.core :as graffito]
-            [com.walmartlabs.lacinia.constants :as constants]
-            [graffito.board-game-geek.resolver :as resolver]))
+  (:require
+   [clojure.test :refer [deftest is testing]]
+   [com.walmartlabs.lacinia.constants :as constants]
+   [graffito.board-game-geek.resolver :as resolver]
+   [graffito.core :as graffito]
+   [graffito.lacinia.eql :as g.eql]))
 
 (deftest selection-fields
   (testing "joined selection"

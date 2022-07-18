@@ -1,13 +1,12 @@
 {:paths ["src" "resources"]
- :deps  {org.clojure/clojure                 {:mvn/version "1.11.0-alpha1"}
-         com.wsscode/pathom3                 {:git/url "https://github.com/wilkerlucio/pathom3"
-                                              :sha     "81a749a6d3409a6b9e75bf85534b1dda8060de06"}
+ :deps  {org.clojure/clojure                 {:mvn/version "1.11.0"}
+         com.wsscode/pathom3                 {:mvn/version "2022.07.08-alpha"}
          camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
-         com.walmartlabs/lacinia             {:mvn/version "0.39-alpha-5"}}
+         com.walmartlabs/lacinia             {:mvn/version "1.2-alpha-1"}}
  :aliases
  {:dev     {:extra-paths ["env/dev/clj" "test"]
             :extra-deps  {hashp/hashp   {:mvn/version "0.2.0"}
-                          vlaaad/reveal {:mvn/version "1.3.206"}}}
+                          djblue/portal {:mvn/version "0.28.0"}}}
   :test    {:extra-paths ["test"]
             :extra-deps  {org.clojure/test.check {:mvn/version "1.1.0"}}}
   :runner

@@ -1,10 +1,9 @@
 (ns graffito.lacinia.resolver
-  (:require [graffito.lacinia.eql :as g.eql]
-            [graffito.lacinia.schema :as schema]
-            [com.wsscode.pathom3.interface.eql :as p.eql]
-            [com.walmartlabs.lacinia.executor :as executor]
-            [graffito.util :as util]))
-
+  (:require
+   [com.walmartlabs.lacinia.executor :as executor]
+   [com.wsscode.pathom3.interface.eql :as p.eql]
+   [graffito.lacinia.eql :as g.eql]
+   [graffito.util :as util]))
 
 (defn pathom [context args value]
   (let [{:keys [input attributes attribute->field]} (g.eql/eql context (executor/selections-tree context) args)]

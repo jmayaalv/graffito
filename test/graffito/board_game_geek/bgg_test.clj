@@ -1,8 +1,9 @@
 (ns graffito.board-game-geek.bgg-test
-  (:require [clojure.test :refer [deftest testing is use-fixtures]]
-            [graffito.core :as graffito]
-            [graffito.board-game-geek.resolver :as resolver]
-            [graffito.test-utils :as t.utils]))
+  (:require
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [graffito.board-game-geek.resolver :as resolver]
+   [graffito.core :as graffito]
+   [graffito.test-utils :as t.utils]))
 
 
 (use-fixtures :once (t.utils/with-env
