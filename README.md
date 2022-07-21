@@ -89,6 +89,9 @@ Pathom 3 liberates you from the Type hell that Graphql forces you into, so why d
 
 We have been using Graffito internally in a medium size Pathom 3 app. The graphql queries we have tested in top of Graffito are relatively simple. We haven't yet tested more advanced features like Fragment, aliases, variables. ETC.
 
+## Previus Work
+
+Graffito has been heavily inspired by the ides from [Graffiti](https://github.com/denisidoro/graffiti) and this [discussion](https://github.com/wilkerlucio/pathom3/discussions/18).
 
 ## License
 
