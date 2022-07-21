@@ -73,8 +73,7 @@ Graphql Subscriptions are not yet supported :(
   (graffito/compile (graffito/load-schema! "cgg-schema.edn")
                     pathom-index))
 
-(lacinia/execute *schema* "{ game_by_id (id: \"1236\") { id name }}" nil pathom-index)
-
+(lacinia/execute schema "{ game_by_id (id: \"1236\") { id name }}" nil pathom-index) 
 
 ```
 
