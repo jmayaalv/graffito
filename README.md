@@ -1,44 +1,94 @@
-# graffito
+# Graffito
 
-FIXME: my new library.
+An alternative way to build Graphql interfarces powered by [Pathom 3](https://github.com/wilkerlucio/pathom3) and [Lacinia](https://github.com/walmartlabs/lacinia).
+
+Graffito takes a Lacinia Schema with a few extra attributes that allow Lacinia to resolve Graphql queries using Pathom 3 resolvers.  This means you write Pathom3 resolvers/mutations and with minimal configuration you can also offer a Graphql graphql
 
 ## Usage
 
-FIXME: write usage documentation!
+To expose a Pathom 3 graph as Graphql first you need to have Pathom3 graph. Nothing in particular has to be done when you write the pathom 3 mutations and resolvers. Once the pathom 3 graph is available you  write a lacinia schema that describes the objects and queries that we are going to expose in the graphql app.
 
-Invoke a library API function from the command-line:
+By convention Graffito matches Graphql types & attributes to namespaced attributes resolved by pathom. If the convention doesn't match the existing attributes, you can specifiy the name of a give type attribute.
 
-    $ clojure -X graffito.graffito/foo :a 1 :b '"two"'
-    {:a 1, :b "two"} "Hello, World!"
+### Attributes
 
-Run the project's tests (they'll fail until you edit them):
+The default convetion is to convert any attribute of a graphql type to: `type.attribte-name`. Example: the Graphql attribute `min_players` from the type `BoardGame` is by default resolved by a pathom as `:board-game.min-players`. In this case, no configuration was necessary inside the lacinia schema.
 
-    $ clojure -M:test:runner
+To match an attribute to a different pathom attribute you use `:pathom/attribute` to specify the name of the attribute to match the Grapqhl attr.
+   Example:
 
-Build a deployable jar of this library:
+   ``` clojure
+  :GameRating
+  {:description "A member's rating of a particular game."
+   :fields
+   {:game   {:type        (non-null :BoardGame)
+             :description "The Game rated by the member."}
+    :rating {:type             (non-null Int)
+             :description      "The rating as 1 to 5 stars."
+             :pathom/attribute :rating/value}}}   ;; Here we are saying that we want to match GameRating.rating to the pathom attr :rating/value
+   ```
 
-    $ clojure -X:jar
+### Resolvers
 
-This will update the generated `pom.xml` file to keep the dependencies synchronized with
-your `deps.edn` file. You can update the version (and SCM tag) information in the `pom.xml` using the
-`:version` argument:
+If not specified each query in GraphQl will be resolved by the default Lacinia resolver. This resolver basically calls pathom and converts the attributes to the values expected by the Lacinia resolver. As in any other Lacinia app, a  custom resolver can be specified using `:resolve     :your/resolver`.
 
-    $ clojure -X:jar :version '"1.2.3"'
+### Mutations
 
-Install it locally (requires the `pom.xml` file):
+For mutations you need to specify the corresponding Pathom3 mutation.
+Example:
 
-    $ clojure -X:install
+```clojure
+:mutations
+ {:rate_game
+  {:type        :BoardGame
+   :description "Establishes a rating of a board game, by a Member.
+   On success (the game and member both exist), selects the BoardGame.
+   Otherwise, selects nil and an error."
+   :args
+   {:game_id   {:type             (non-null ID)
+                :pathom/attribute :board-game/id}
+    :member_id {:type             (non-null ID)
+                :pathom/attribute :member/id}
+    :rating    {:type        (non-null Int)
+                :description "Game rating as a number between 1 and 5."}}
+   :resolve     [:pathom/mutation graffito.board-game-geek.resolver/rate!]}} ;; Specify the corresponding pathom mutation
 
-Deploy it to Clojars -- needs `CLOJARS_USERNAME` and `CLOJARS_PASSWORD` environment
-variables (requires the `pom.xml` file):
+```
 
-    $ clojure -X:deploy
+### Subscriptions
 
-Your library will be deployed to net.clojars.graffito/graffito on clojars.org by default.
+Graphql Subscriptions are not yet supported :(
 
-If you don't plan to install/deploy the library, you can remove the
-`pom.xml` file but you will also need to remove `:sync-pom true` from the `deps.edn`
-file (in the `:exec-args` for `depstar`).
+### Putting it all together
+
+``` clojure
+(ns  graffito.board-game-geek.core
+ (:require [com.walmartlabs.lacinia :as lacinia)
+           [graffito.core :as graffito]
+
+
+(def pathom-index ....)
+
+(def schema
+  (graffito/compile (graffito/load-schema! "cgg-schema.edn")
+                    pathom-index))
+
+(lacinia/execute *schema* "{ game_by_id (id: \"1236\") { id name }}" nil pathom-index)
+
+
+```
+
+For more complete examples check [This test](./test/graffito/board_game_geek/bgg_test.clj)
+
+
+## Why
+
+Pathom 3 liberates you from the Type hell that Graphql forces you into, so why do we wnat to use Graphql? Reach. Graphql lets you reach to the Javascript community. A lot of tools have been developed around graphql and convincing a javascript developr to use EQL is as hard as convincing a Clojurescript developer to use Strings to write queries. Graffito opens your graph to both audiences.
+
+## Warning
+
+We have been using Graffito internally in a medium size Pathom 3 app. The graphql queries we have tested in top of Graffito are relatively simple. We haven't yet tested more advanced features like Fragment, aliases, variables. ETC.
+
 
 ## License
 

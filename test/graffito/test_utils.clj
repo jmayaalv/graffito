@@ -1,8 +1,10 @@
 (ns graffito.test-utils
-  (:require  [graffito.core :as graffito]
-             [com.walmartlabs.lacinia :as lacinia]
-             [clojure.walk :as walk])
-  (:import (clojure.lang IPersistentMap)))
+  (:require
+   [clojure.walk :as walk]
+   [com.walmartlabs.lacinia :as lacinia]
+   [graffito.core :as graffito])
+  (:import
+   (clojure.lang IPersistentMap)))
 
 (def ^:dynamic *schema*)
 
